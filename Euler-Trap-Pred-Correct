@@ -1,0 +1,63 @@
+import numpy as np
+import pandas as pd
+
+# Define the derivative function and exact solution
+def dydt(t, y):
+    return t + y
+
+def exact_solution(t):
+    return np.exp(t) - t - 1
+
+# Euler-Trapezoidal Predictor-Corrector Method
+def predictor_corrector_method(f, t_values, y0, h, tol=1e-6, max_iter=10):
+    y_values = [y0]
+    for i in range(len(t_values) - 1):
+        t_n = t_values[i]
+        y_n = y_values[-1]
+        
+        # Predictor Step (Euler's Method)
+        y_pred = y_n + h * f(t_n, y_n)
+        
+        # Corrector Step (Trapezoidal Rule)
+        y_corr = y_pred  # Initialize corrector
+        for _ in range(max_iter):
+            y_new = y_n + (h / 2) * (f(t_n, y_n) + f(t_n + h, y_corr))
+            if abs(y_new - y_corr) < tol:  # Convergence check
+                break
+            y_corr = y_new
+        
+        y_values.append(y_corr)
+    return y_values
+
+# Function to run and display results for two step sizes
+def run_and_display(h_values, t_end, y0):
+    results = []
+
+    # Run for each step size
+    for h in h_values:
+        t_values = np.arange(0, t_end + h, h)
+        y_exact = exact_solution(t_values)
+        y_pc = predictor_corrector_method(dydt, t_values, y0, h)
+
+        # Append the results at t = 2
+        idx_2 = np.where(t_values == 2.0)[0][0]
+        results.append({
+            "Step size (h)": h,
+            "t": t_values[idx_2],
+            "Predictor-Corrector": y_pc[idx_2],
+            "Exact Solution": y_exact[idx_2],
+            "Error (%)": abs((y_pc[idx_2] - y_exact[idx_2]) / y_exact[idx_2]) * 100
+        })
+    
+    # Display results in tabular form
+    df = pd.DataFrame(results)
+    print("\nResults for Euler-Trapezoidal Predictor-Corrector Method at y(2):")
+    print(df.to_string(index=False))
+
+# Define parameters
+y0 = 0  # Initial condition
+t_end = 2  # Target time
+h_values = [0.5, 0.25]  # Step sizes to ensure convergence
+
+# Run and display results
+run_and_display(h_values, t_end, y0)

@@ -1,0 +1,81 @@
+import numpy as np
+import pandas as pd
+
+# Define the derivative function and exact solution
+def dydt(t, y):
+    return t + y
+
+def exact_solution(t):
+    return np.exp(t) - t - 1
+
+# Numerical Methods
+def euler_method(f, t_values, y0, h):
+    y_values = [y0]
+    for i in range(len(t_values) - 1):
+        y_next = y_values[-1] + h * f(t_values[i], y_values[-1])
+        y_values.append(y_next)
+    return y_values
+
+def modified_euler_method(f, t_values, y0, h):
+    y_values = [y0]
+    for i in range(len(t_values) - 1):
+        y_pred = y_values[-1] + h * f(t_values[i], y_values[-1])
+        y_next = y_values[-1] + h * f(t_values[i] + h, y_pred) / 2
+        y_values.append(y_next)
+    return y_values
+
+def heun_method(f, t_values, y0, h):
+    y_values = [y0]
+    for i in range(len(t_values) - 1):
+        y_pred = y_values[-1] + h * f(t_values[i], y_values[-1])
+        y_next = y_values[-1] + (h / 2) * (f(t_values[i], y_values[-1]) + f(t_values[i+1], y_pred))
+        y_values.append(y_next)
+    return y_values
+
+def midpoint_method(f, t_values, y0, h):
+    y_values = [y0]
+    for i in range(len(t_values) - 1):
+        y_mid = y_values[-1] + (h / 2) * f(t_values[i], y_values[-1])
+        y_next = y_values[-1] + h * f(t_values[i] + h / 2, y_mid)
+        y_values.append(y_next)
+    return y_values
+
+# Define parameters
+h = 0.5  # Step size
+t_values = np.arange(0, 4.5, h)  # Time points
+y0 = 0  # Initial condition
+
+# Compute solutions
+exact_values = exact_solution(t_values)
+euler_values = euler_method(dydt, t_values, y0, h)
+mod_euler_values = modified_euler_method(dydt, t_values, y0, h)
+heun_values = heun_method(dydt, t_values, y0, h)
+midpoint_values = midpoint_method(dydt, t_values, y0, h)
+
+# Compute errors
+def compute_errors(approx_values, exact_values):
+    return [abs((a - e) / e) * 100 if e != 0 else 0 for a, e in zip(approx_values, exact_values)]
+
+euler_errors = compute_errors(euler_values, exact_values)
+mod_euler_errors = compute_errors(mod_euler_values, exact_values)
+heun_errors = compute_errors(heun_values, exact_values)
+midpoint_errors = compute_errors(midpoint_values, exact_values)
+
+# Create a DataFrame for the results
+data = {
+    "t": t_values,
+    "Exact": exact_values,
+    "Euler": euler_values,
+    "Modified Euler": mod_euler_values,
+    "Heun": heun_values,
+    "Midpoint": midpoint_values,
+    "Euler Error (%)": euler_errors,
+    "Modified Euler Error (%)": mod_euler_errors,
+    "Heun Error (%)": heun_errors,
+    "Midpoint Error (%)": midpoint_errors,
+}
+
+df = pd.DataFrame(data)
+
+# Display the results in a simple table
+print(df.to_string(index=False))

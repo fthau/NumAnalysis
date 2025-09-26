@@ -1,0 +1,40 @@
+import numpy as np
+
+# Define the exact solution y(t)
+def exact_solution(t):
+    return t**2 * (np.exp(t) - np.exp(1))
+
+# Define the function f(t, y)
+def f(t, y):
+    return -2/t * y + t**2 * np.exp(t)
+
+# Euler's method implementation
+def euler_method(f, t0, y0, h, n_steps):
+    t_values = [t0]
+    w_values = [y0]
+    for _ in range(n_steps):
+        t_prev, w_prev = t_values[-1], w_values[-1]
+        t_next = t_prev + h
+        w_next = w_prev + h * f(t_prev, w_prev)
+        t_values.append(t_next)
+        w_values.append(w_next)
+    return np.array(t_values), np.array(w_values)
+
+# Input parameters
+t0, y0 = 1, np.sqrt(2 * np.exp(1))  # Initial condition
+h = 0.1  # Step size
+n_steps = int((2 - t0) / h)  # Number of steps
+
+# Perform Euler's method
+t_euler, w_euler = euler_method(f, t0, y0, h, n_steps)
+
+# Compute exact values
+y_exact = exact_solution(t_euler)
+
+# Compute absolute errors
+errors = np.abs(y_exact - w_euler)
+
+# Print results
+print(f"{'t':<10}{'Approximation (w)':<25}{'Exact Value (y)':<25}{'Error':<15}")
+for t, w, y, error in zip(t_euler, w_euler, y_exact, errors):
+    print(f"{t:<10.4f}{w:<25.6f}{y:<25.6f}{error:<15.6f}")
